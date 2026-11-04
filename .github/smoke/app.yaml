@@ -1,0 +1,21 @@
+url: https://staging.hypris.com/
+viewport: {width: 1440, height: 900, scale: 2}
+locale: en-US
+colorScheme: dark
+timeout: 45000
+session:
+  origin: https://staging.hypris.com/
+  settle: 3000
+  blockRequests: ["**/api/auth/session"]
+  localStorage: {"app-layout.agent-panel-open": "false"}
+  indexedDb:
+    - {database: localforage, store: keyvaluepairs, key: smoke-test, value: "1"}
+steps:
+  - wait: 5000
+  - screenshot: {name: shot}
+  - record: {name: clip, fps: 30}
+  - move: {expression: "({x:420,y:260,width:2,height:2})", duration: 1200}
+  - wait: 800
+  - move: {expression: "({x:900,y:420,width:2,height:2})", duration: 1200}
+  - wait: 1200
+  - stop: true

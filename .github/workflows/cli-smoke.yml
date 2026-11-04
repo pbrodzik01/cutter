@@ -1,0 +1,56 @@
+name: CLI smoke
+on:
+  push:
+    branches: [test/actions-smoke]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: node scripts/build.mjs
+      - run: npx playwright-core install --with-deps chromium
+      - name: CLI tests
+        continue-on-error: true
+        run: node --test tests/cli.test.cjs
+      - name: Serve the motion page
+        run: (cd .github/smoke && python3 -m http.server 8099 >/dev/null 2>&1 &) ; sleep 2
+      - name: Capture motion
+        run: time node dist/cli/cutter.cjs capture --spec .github/smoke/motion.yaml --out out/motion --json
+      - name: Render motion
+        run: |
+          time node dist/cli/cutter.cjs render out/motion/clip.mp4 --max-width 1920 --out out/motion/final.mp4
+          time node dist/cli/cutter.cjs render out/motion/shot.png --max-width 1920 --out out/motion/final.png
+      - name: Capture the app
+        continue-on-error: true
+        run: time node dist/cli/cutter.cjs capture --spec .github/smoke/app.yaml --out out/app --json
+      - name: Render the app
+        continue-on-error: true
+        run: time node dist/cli/cutter.cjs render out/app/clip.mp4 --max-width 1920 --out out/app/final.mp4
+      - name: Probe the results
+        if: always()
+        run: |
+          node -e "
+          const {execFileSync} = require('child_process')
+          const fs = require('fs')
+          const probe = require('ffprobe-static').path
+          for (const file of ['out/motion/clip.mp4','out/motion/final.mp4','out/app/clip.mp4','out/app/final.mp4']) {
+            if (!fs.existsSync(file)) { console.log(file, 'missing'); continue }
+            const info = JSON.parse(execFileSync(probe, ['-v','error','-count_frames','-show_streams','-show_format','-of','json',file]))
+            const video = info.streams.find(stream => stream.codec_type === 'video')
+            console.log(file, video.codec_name, video.width + 'x' + video.height, 'frames', video.nb_read_frames, 'fps', video.avg_frame_rate, 'seconds', info.format.duration, 'bytes', info.format.size)
+          }"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-output
+          path: out
+          if-no-files-found: warn

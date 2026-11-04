@@ -1,0 +1,17 @@
+url: http://127.0.0.1:8099/motion.html
+viewport: {width: 1440, height: 900, scale: 2}
+locale: en-US
+colorScheme: dark
+timeout: 30000
+steps:
+  - waitFor: {selector: "#menu"}
+  - wait: 1000
+  - record: {name: clip, fps: 30}
+  - move: {selector: "#menu", duration: 800}
+  - wait: 800
+  - click: {selector: "#menu"}
+  - wait: 8000
+  - move: {expression: "({x:900,y:600,width:2,height:2})", duration: 1200}
+  - wait: 1500
+  - stop: true
+  - screenshot: {name: shot}

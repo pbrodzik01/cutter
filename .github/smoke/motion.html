@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Motion</title>
+<style>
+  body { margin: 0; background: #14181d; color: #eef; font: 24px sans-serif; }
+  #box { position: absolute; top: 200px; left: 40px; width: 160px; height: 160px; background: #3b8df1; border-radius: 16px; animation: slide 2s linear infinite alternate; }
+  @keyframes slide { to { left: 1200px; } }
+  #menu { position: absolute; top: 60px; left: 40px; padding: 12px 20px; background: #2a3038; }
+  #result { position: absolute; top: 60px; left: 300px; }
+</style>
+</head>
+<body>
+  <button id="menu" onclick="document.getElementById('result').textContent = 'Clicked'">Open</button>
+  <div id="result"></div>
+  <div id="box"></div>
+</body>
+</html>
